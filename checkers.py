@@ -15,9 +15,9 @@ import numpy as np
 # Implement king functionality
 
 class GameState:
-        currentTurn = "B"
+    currentTurn = "B"
 
-        board = [[0, "W", 0, "W", 0, "W", 0, "W"],
+    board = [[0, "W", 0, "W", 0, "W", 0, "W"],
                 ["W", 0, "W", 0, "W", 0, "W", 0],
                 [ 0, "W", 0, "W", 0, "W", 0, "W"],
                 [ 0,  0,  0,  0,  0,  0,  0,  0],
@@ -28,7 +28,7 @@ class GameState:
 
     def getPiecesLocations(self, color):
         retList = []
-        for row in self.Board:
+        for row in self.board:
             for col in row:
                 if row[col] == color:
                     retList.append([row, col])
@@ -56,6 +56,66 @@ class GameState:
         actions.applyAction(self, action)
         self.changeTurn()
 
+    def checkCapturing(self, GameState, pieceLocation, pieceColor):     
+        #pieceColor = GameState.board[piece]         #can be W, B, WW, BB
+        teamColor = pieceColor[0]                   #corrects for kingness
+        boardMax = len(GameState.board)             #make sure not to index at this row / column. 
+        # y+2 < boardMax, as a capture moves you 2 spaces
+        # y-1 > 0 for the same reason
+        x = pieceLocation[0]
+        y = pieceLocation[1]
+        retList = []
+        if (pieceColor != "B") and (x>1):                   #white or king, can go South, decreasing X. Can jump to row 0.
+            if (y>1):
+                swPoint = GameState.board[x - 1, y - 1]
+                jumpPoint = GameState.board[x - 2, y - 2]           #these two get the contents- should be enemy and empty respectively
+                if (swPoint[0] != teamColor) and (jumpPoint == 0):
+                    newPiece = [x-2,y-2]
+                    further = self.checkCapturing(self, GameState, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    if further == []:
+                        retList.append("Capture SW")                            #simple 1 capture
+                    else:
+                        for capture in further:
+                            retList.append("Capture SW" + capture)                 #multiple capture options NE, SE, NW, SW. Add those to simple capture.
+            if (y<boardMax-2):
+                sePoint = GameState.board[x - 1, y + 1]
+                jumpPoint = GameState.board[x - 2, y + 2]
+                if (sePoint[0] != teamColor) and (jumpPoint == 0):
+                    newPiece = [x-2,y+2]
+                    further = self.checkCapturing(self, GameState, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    if further == []:
+                        retList.append("Capture SE")                            #simple 1 capture
+                    else:
+                        for capture in further:
+                            retList.append("Capture SE" + capture)                 #multiple capture options NE, SE, NW, SW. Add those to simple capture.
+        if (pieceColor != "W") and (x<boardMax-2):                   #black or king, can go North, increasing X.
+            if (y>1):
+                nwPoint = GameState.board[x + 1, y - 1]
+                jumpPoint = GameState.board[x + 2, y - 2]
+                if (nwPoint[0] != teamColor) and (jumpPoint == 0):
+                    newPiece = [x+2,y-2]
+                    further = self.checkCapturing(self, GameState, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    if further == []:
+                        retList.append("Capture NW")                            #simple 1 capture
+                    else:
+                        for capture in further:
+                            retList.append("Capture NW" + capture)                 #multiple capture options NE, SE, NW, SW. Add those to simple capture.
+            if (y<boardMax-2):
+                nePoint = GameState.board[x + 1, y + 1]
+                jumpPoint = GameState.board[x + 2, y + 2]
+                if (nePoint[0] != teamColor) and (jumpPoint == 0):
+                    newPiece = [x+2,y+2]
+                    further = self.checkCapturing(self, GameState, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    if further == []:
+                        retList.append("Capture NE")                            #simple 1 capture
+                    else:
+                        for capture in further:
+                            retList.append("Capture NE" + capture)                 #multiple capture options NE, SE, NW, SW. Add those to simple capture.
+        return retList
+        #This gives up to 4 options, each of which may be only the start of a chain
+        #should be able to see the entire jump chain, using recursion
+        #could just have applyAction run check after landing a capture, but that gives little ability to evaluate between different captures.
+
 
 class Actions:
     def getPossibleActions(self, GameState, color): # need to implement capturing
@@ -63,26 +123,26 @@ class Actions:
         pieces = GameState.getPiecesLocations(color)
 
         for piece in pieces: # piece = [row, col]
-            pieceColor = GameState.Board[piece]
+            pieceColor = GameState.board[piece]
             if pieceColor != "B":
                 try:
-                    if GameState.Board[piece[0] - 1, piece[1] - 1] == 0:
+                    if GameState.board[piece[0] - 1, piece[1] - 1] == 0:
                         retList.append([piece, "SW"])
                 except:
                     pass
                 try:
-                    if GameState.Board[piece[0] - 1, piece[1] + 1] == 0:
+                    if GameState.board[piece[0] - 1, piece[1] + 1] == 0:
                         retList.append([piece, "SE"])
                 except:
                     pass
             if pieceColor != "W":
                 try:
-                    if GameState.Board[piece[0] + 1, piece[1] - 1] == 0:
+                    if GameState.board[piece[0] + 1, piece[1] - 1] == 0:
                         retList.append([piece, "NW"])
                 except:
                     pass
                 try:
-                    if GameState.Board[piece[0] + 1, piece[1] + 1] == 0:
+                    if GameState.board[piece[0] + 1, piece[1] + 1] == 0:
                         retList.append([piece, "NE"])
                 except:
                     pass
@@ -92,19 +152,19 @@ class Actions:
     def applyAction(self, GameState, action): # action = [[row, col], "direction"], need to implement capturing
         direction = action[1]
         location = action[0]
-        color = GameState.Board[location[0], location[1]]
+        color = GameState.board[location[0], location[1]]
         if direction == "NE":
-            GameState.Board[location[0], location[1]] = 0
-            GameState.Board[location[0] - 1, location[1] + 1] = color
+            GameState.board[location[0], location[1]] = 0
+            GameState.board[location[0] - 1, location[1] + 1] = color
         elif direction == "SE":
-            GameState.Board[location[0], location[1]] = 0
-            GameState.Board[location[0] + 1, location[1] + 1] = color
+            GameState.board[location[0], location[1]] = 0
+            GameState.board[location[0] + 1, location[1] + 1] = color
         elif direction == "SW":
-            GameState.Board[location[0], location[1]] = 0
-            GameState.Board[location[0] + 1, location[1] - 1] = color
+            GameState.board[location[0], location[1]] = 0
+            GameState.board[location[0] + 1, location[1] - 1] = color
         elif direction == "NW":
-            GameState.Board[location[0], location[1]] = 0
-            GameState.Board[location[0] - 1, location[1] - 1] = color
+            GameState.board[location[0], location[1]] = 0
+            GameState.board[location[0] - 1, location[1] - 1] = color
 
 class AlphaBetaAgent:
     # need to adapt to checkers game
