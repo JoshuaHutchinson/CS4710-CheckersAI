@@ -7,12 +7,10 @@
 import numpy as np
 
 # TO DO:
-# Implement capturing - Justin
-# Implement generateSuccessors()
-# Implement driver code/print board - Joshua
+# Integrate capturing, testing, displaying board - Justin
+# Implement generateSuccessors() - Joshua
 # Implement human playability
-# Implement agent and heuristic
-# Implement king functionality
+# Implement agent and heuristic - Joshua
 
 
 class GameState:
@@ -31,12 +29,15 @@ class GameState:
         retList = []
         for row in self.board:
             for col in range(len(row)):
-                if row[col] == color:
+                if row[col] == color or row[col] == 2 * color:
                     retList.append([row, col])
         return retList
 
     def getPiecesCount(self, color):
         return len(self.getPiecesLocations(color))
+
+    def getPieceColor(self, location):  # should not call on empty space
+        return self.board[location[0]][location[1]][0]
 
     def isGameOver(self):  # add in stale mate checking
         if self.getPiecesCount("W") == 0 or self.getPiecesCount("B") == 0:
@@ -49,11 +50,11 @@ class GameState:
         else:
             self.currentTurn = "B"
 
-    def generateSuccessors(self): # need to implement
+    def generateSuccessors(self):  # need to implement
         pass
 
     def carryOutTurn(self, actions):
-        action = AlphaBetaAgent.getAction() # need to implement
+        action = AlphaBetaAgent.getAction()  # need to implement
         actions.applyAction(self, action)
         self.changeTurn()
 
@@ -119,7 +120,7 @@ class GameState:
 
 
 class Actions:
-    def getPossibleActions(self, GameState, color): # need to implement capturing
+    def getPossibleActions(self, GameState, color):  # need to implement capturing
         retList = []
         pieces = GameState.getPiecesLocations(color)
 
@@ -148,24 +149,36 @@ class Actions:
                 except:
                     pass
 
+        capturePossible = False
+        for piece in pieces:  # piece = [row, col]
+            pieceColor = GameState.board[piece]
+            capturingMoves = self.checkCapturing(GameState, piece, pieceColor)
+            if len(capturingMoves) > 0:
+                if not capturePossible:
+                    retList = capturingMoves
+                if capturePossible:
+                    retList.append(capturingMoves)
+                capturePossible = True
+
         return retList
 
-    def applyAction(self, GameState, action): # action = [[row, col], "direction"], need to implement capturing
-        direction = action[1]
-        location = action[0]
-        color = GameState.board[location[0], location[1]]
-        if direction == "NE":
-            GameState.board[location[0], location[1]] = 0
-            GameState.board[location[0] - 1, location[1] + 1] = color
-        elif direction == "SE":
-            GameState.board[location[0], location[1]] = 0
-            GameState.board[location[0] + 1, location[1] + 1] = color
-        elif direction == "SW":
-            GameState.board[location[0], location[1]] = 0
-            GameState.board[location[0] + 1, location[1] - 1] = color
-        elif direction == "NW":
-            GameState.board[location[0], location[1]] = 0
-            GameState.board[location[0] - 1, location[1] - 1] = color
+    def applyAction(self, GameState, actions):  # action = [[row, col], "direction"], need to implement capturing
+        for action in actions:
+            direction = action[1]
+            location = action[0]
+            color = GameState.board[location[0], location[1]]
+            if direction == "NE":
+                GameState.board[location[0], location[1]] = 0
+                GameState.board[location[0] - 1, location[1] + 1] = color
+            elif direction == "SE":
+                GameState.board[location[0], location[1]] = 0
+                GameState.board[location[0] + 1, location[1] + 1] = color
+            elif direction == "SW":
+                GameState.board[location[0], location[1]] = 0
+                GameState.board[location[0] + 1, location[1] - 1] = color
+            elif direction == "NW":
+                GameState.board[location[0], location[1]] = 0
+                GameState.board[location[0] - 1, location[1] - 1] = color
 
 class AlphaBetaAgent:
     # need to adapt to checkers game
