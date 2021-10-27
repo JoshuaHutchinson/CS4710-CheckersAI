@@ -14,6 +14,7 @@ import numpy as np
 # Implement agent and heuristic
 # Implement king functionality
 
+
 class GameState:
     currentTurn = "B"
 
@@ -29,7 +30,7 @@ class GameState:
     def getPiecesLocations(self, color):
         retList = []
         for row in self.board:
-            for col in row:
+            for col in range(len(row)):
                 if row[col] == color:
                     retList.append([row, col])
         return retList
@@ -37,7 +38,7 @@ class GameState:
     def getPiecesCount(self, color):
         return len(self.getPiecesLocations(color))
 
-    def isGameOver(self):
+    def isGameOver(self):  # add in stale mate checking
         if self.getPiecesCount("W") == 0 or self.getPiecesCount("B") == 0:
             return True
         return False
@@ -209,13 +210,17 @@ class AlphaBetaAgent:
             return v
     """
 
+
 def main():
     game = GameState()
     actions = Actions()
 
-    print(np.Matrix(game.board))
+    print(np.matrix(game.board))
     while not game.isGameOver():
         game.carryOutTurn(actions)
-        print(np.Matrix(game.board))
+        print(np.matrix(game.board))
 
     print("Game Over")
+
+
+main()
