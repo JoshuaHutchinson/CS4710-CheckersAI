@@ -52,8 +52,13 @@ class GameState:
         else:
             self.currentTurn = "B"
 
-    def generateSuccessors(self):  # need to implement
-        pass
+    def generateSuccessors(self, Actions, color):
+        retList = []
+        for action in Actions.getPossibleActions(self, color):
+            thisGame = GameState()
+            Actions.applyAction(thisGame, action)
+            retList.append(thisGame)
+        return retList
 
     def carryOutTurn(self, actions):
         action = AlphaBetaAgent.getAction()  # need to implement
@@ -204,15 +209,17 @@ class Actions:
                 GameState.board[location[0] - 1][location[1] - 1] = color
 
 class AlphaBetaAgent:
+    def evaluationFunction(self, GameState, color):
+        return GameState.getPiecesCount(color)  # change to something more complicated
+
     # need to adapt to checkers game
-    """
-    def getAction(self, GameState):
-        bestAction = Directions.NORTH
+    def getAction(self, GameState, Actions, color):
+        bestAction = [[0, 0], "NW"]  # need to figure out default move
         bestValue = float('-inf')
         a = bestValue
         b = -bestValue
-        for action in gameState.getLegalActions(0):
-            curValue = self.prune(1, 0, gameState.generateSuccessor(0, action), a, b)
+        for action in Actions.getPossibleActions(GameState, color):
+            curValue = self.prune(color, 0, GameState.generateSuccessors(Actions, color), a, b)
             if curValue > bestValue:
                 bestValue = curValue
                 bestAction = action
@@ -221,13 +228,11 @@ class AlphaBetaAgent:
             a = max(a, curValue)
         return bestAction
 
-    def prune(self, agentIndex, depth, gameState, a, b):
-        if agentIndex == gameState.getNumAgents():
-            agentIndex = 0
-            depth += 1
-        if depth == self.depth or gameState.isWin() or gameState.isLose():
-            return self.evaluationFunction(gameState)
-        potentialActions = gameState.getLegalActions(agentIndex)
+    def prune(self, color, depth, GameState, a, b):
+        # figure out how to change turns and make prune work for both colors as max and min agents
+        if depth == self.depth or GameState.isGameOver():
+            return self.evaluationFunction(gameState), color
+        potentialActions = GameState.getPossibleActions(GameState, color)
         if agentIndex == 0:
             v = float('-inf')
             for action in potentialActions:
@@ -244,7 +249,6 @@ class AlphaBetaAgent:
                     return v
                 b = min(b, v)
             return v
-    """
 
 
 def main():
