@@ -292,6 +292,9 @@ def main():
         while not game.isGameOver():
             print(np.matrix(game.board))
             a = actions.getPossibleActions(game, game.currentTurn)
+            if len(a)==0:
+                print("Game Over")
+                return
             print("Input an integer 0 or greater among moves available for", game.currentTurn, " :")
             for move in range(len(a)):
                 print(move, ": ", a[move])
