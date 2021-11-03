@@ -158,23 +158,23 @@ class Actions:
             if pieceColor != "W":
                 try:
                     if GameState.board[piece[0] - 1][piece[1] - 1] == 0 and piece[0] > 0 and piece[1] > 0:
-                        retList.append([piece, "NW"])
+                        retList.append([[piece, "NW"]])
                 except:
                     pass
                 try:
                     if GameState.board[piece[0] - 1][piece[1] + 1] == 0 and piece[0] > 0 and piece[1] < 7:
-                        retList.append([piece, "NE"])
+                        retList.append([[piece, "NE"]])
                 except:
                     pass
             if pieceColor != "B":
                 try:
                     if GameState.board[piece[0] + 1][piece[1] - 1] == 0 and piece[0] < 7 and piece[1] > 0:
-                        retList.append([piece, "SW"])
+                        retList.append([[piece, "SW"]])
                 except:
                     pass
                 try:
                     if GameState.board[piece[0] + 1][piece[1] + 1] == 0 and piece[0] < 7 and piece[1] < 7:
-                        retList.append([piece, "SE"])
+                        retList.append([[piece, "SE"]])
                 except:
                     pass
 
