@@ -7,10 +7,8 @@
 import numpy as np
 
 # TO DO:
-# Integrate capturing, testing, displaying board - Justin
-# Implement generateSuccessors() - Joshua
-# Implement human playability
-# Implement agent and heuristic - Joshua
+# Integrate capturing, testing - Justin
+# Implement heuristic and default move for getAction() - Joshua
 
 
 class GameState:
@@ -60,9 +58,20 @@ class GameState:
             retList.append(thisGame)
         return retList
 
+    def makeKings(self):
+        if self.currentTurn == "W":
+            for pieceLocation in self.getPiecesLocations("W"):
+                if pieceLocation[0] == 7:
+                    self.board[pieceLocation[0]][pieceLocation[1]] = "WW"
+        else:
+            for pieceLocation in self.getPiecesLocations("B"):
+                if pieceLocation[0] == 0:
+                    self.board[pieceLocation[0]][pieceLocation[1]] = "BB"
+
     def carryOutTurn(self, actions):
         action = AlphaBetaAgent.getAction()  # need to implement
         actions.applyAction(self, action)
+        self.makeKings()
         self.changeTurn()
 
     def checkCapturing(self, GameState, pieceLocation, pieceColor):     
@@ -141,7 +150,7 @@ class Actions:
                     #print("piece ", piece," going NW")
                     #print(piece[0] - 1, " , ", piece[1] - 1)
                     #print(GameState.board[piece[0] - 1][piece[1] - 1], "\n")
-                    if GameState.board[piece[0] - 1][piece[1] - 1] == 0:
+                    if GameState.board[piece[0] - 1][piece[1] - 1] == 0 and piece[0] > 0 and piece[1] > 0:
                         #print(piece, "can go NW")
                         retList.append([piece, "NW"])
                 except:
@@ -150,7 +159,7 @@ class Actions:
                     #print("piece ", piece," going NE")
                     #print(piece[0] - 1, " , ", piece[1] + 1)
                     #print(GameState.board[piece[0] - 1][piece[1] + 1], "\n")
-                    if GameState.board[piece[0] - 1][piece[1] + 1] == 0:
+                    if GameState.board[piece[0] - 1][piece[1] + 1] == 0 and piece[0] > 0 and piece[1] < 7:
                         #print(piece, "can go NE")
                         retList.append([piece, "NE"])
                 except:
@@ -160,7 +169,7 @@ class Actions:
                     #print("piece ", piece," going SW")
                     #print(piece[0] + 1, " , ", piece[1] - 1)
                     #print(GameState.board[piece[0] + 1][piece[1] - 1], "\n")
-                    if GameState.board[piece[0] + 1][piece[1] - 1] == 0:
+                    if GameState.board[piece[0] + 1][piece[1] - 1] == 0 and piece[0] < 7 and piece[1] > 0:
                         #print(piece, "can go SW")
                         retList.append([piece, "SW"])
                 except:
@@ -169,7 +178,7 @@ class Actions:
                     #print("piece ", piece," going SE")
                     #print(piece[0] + 1, " , ", piece[1] + 1)
                     #print(GameState.board[piece[0] + 1][piece[1] + 1], "\n")
-                    if GameState.board[piece[0] + 1][piece[1] + 1] == 0:
+                    if GameState.board[piece[0] + 1][piece[1] + 1] == 0 and piece[0] < 7 and piece[1] < 7:
                         #print(piece, "can go SE")
                         retList.append([piece, "SE"])
                 except:
@@ -212,14 +221,19 @@ class AlphaBetaAgent:
     def evaluationFunction(self, GameState, color):
         return GameState.getPiecesCount(color)  # change to something more complicated
 
-    # need to adapt to checkers game
     def getAction(self, GameState, Actions, color):
-        bestAction = [[0, 0], "NW"]  # need to figure out default move
+        # need to figure out default move
+        if color == "B":
+            bestAction = [[5, 0], "NE"]
+        else:
+            bestAction = [[2, 7], "SW"]
         bestValue = float('-inf')
         a = bestValue
         b = -bestValue
         for action in Actions.getPossibleActions(GameState, color):
-            curValue = self.prune(color, 0, GameState.generateSuccessors(Actions, color), a, b)
+            newState = GameState()
+            Actions.applyAction(newState, [action])
+            curValue = self.prune(newState, 10, a, b, color, color, Actions)
             if curValue > bestValue:
                 bestValue = curValue
                 bestAction = action
@@ -228,23 +242,27 @@ class AlphaBetaAgent:
             a = max(a, curValue)
         return bestAction
 
-    def prune(self, color, depth, GameState, a, b):
-        # figure out how to change turns and make prune work for both colors as max and min agents
-        if depth == self.depth or GameState.isGameOver():
-            return self.evaluationFunction(gameState), color
-        potentialActions = GameState.getPossibleActions(GameState, color)
-        if agentIndex == 0:
+    def prune(self, GameState, depth, a, b, color, maximizingColor, Actions):
+        if depth == 0 or GameState.isGameOver():
+            return self.evaluationFunction(gameState, color)
+        potentialStates = GameState.generateSuccessors(Actions, color)
+        if color == "W":
+            color = "B"
+        else:
+            color = "W"
+        depth -= 1
+        if color == maximizingColor:
             v = float('-inf')
-            for action in potentialActions:
-                v = max(v, self.prune(agentIndex + 1, depth, gameState.generateSuccessor(agentIndex, action), a, b))
+            for state in potentialStates:
+                v = max(v, self.prune(state, depth, a, b, color, maximizingColor, Actions))
                 if v > b:
                     return v
                 a = max(a, v)
             return v
         else:
             v = float('inf')
-            for action in potentialActions:
-                v = min(v, self.prune(agentIndex + 1, depth, gameState.generateSuccessor(agentIndex, action), a, b))
+            for state in potentialStates:
+                v = min(v, self.prune(state, depth, a, b, color, maximizingColor, Actions))
                 if v < a:
                     return v
                 b = min(b, v)
@@ -262,7 +280,7 @@ def main():
 
     #print(np.matrix(game.board))
 
-    if agent1=="PLAYER" and agent2=="PLAYER":       #just for testing, real should implement playing
+    if agent1 == "PLAYER" and agent2 == "PLAYER":       #just for testing, real should implement playing
         while not game.isGameOver():
             print(np.matrix(game.board))
             a = actions.getPossibleActions(game, game.currentTurn)
