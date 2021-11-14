@@ -60,9 +60,10 @@ class GameState:
 
     def generateSuccessors(self, Actions, color):
         retList = []
-        for action in Actions.getPossibleActions(self, color):
+        possible = Actions.getPossibleActions(self, color)
+        for action in range(len(possible)):
             thisGame = GameState()
-            Actions.applyAction(thisGame, action)
+            Actions.applyAction(thisGame, [possible[action]])
             retList.append(thisGame)
         return retList
 
@@ -78,6 +79,7 @@ class GameState:
 
     def carryOutTurn(self, actions):
         action = AlphaBetaAgent.getAction()  # need to implement
+        print("problem is here?")
         actions.applyAction(self, action)
         self.makeKings()
         self.changeTurn()
@@ -145,7 +147,6 @@ class GameState:
         return retList
         #This gives up to 4 options, each of which may be only the start of a chain
         #should be able to see the entire jump chain, using recursion
-        #could just have applyAction run check after landing a capture, but that gives little ability to evaluate between different captures.
 
 
 class Actions:
@@ -191,10 +192,12 @@ class Actions:
         return retList
 
     def applyAction(self, GameState, actions):  # action = [[row, col], "direction"], need to implement capturing
+        print("actions list to apply is ", actions)
         actions = actions[0]
         for action in actions:
             direction = action[1]
             location = action[0]
+            print("location is ", location, " with action ", action)
             color = GameState.board[location[0]][location[1]]
             if direction == "NE":
                 GameState.board[location[0]][location[1]] = 0
@@ -224,12 +227,27 @@ class Actions:
                 GameState.board[location[0]][location[1]] = 0
                 GameState.board[location[0] - 1][location[1] - 1] = 0
                 GameState.board[location[0] - 2][location[1] - 2] = color
+        self.promoting(GameState, color)
+    
+    def promoting(self, GameState, color):
+        boardMax = len(GameState.board)
+        pieces = GameState.getPiecesLocations(color)
+        if color=="W":
+            for piece in pieces:
+                #print(piece[1], " , ", boardMax-1)
+                if piece[0] == boardMax-1:
+                    GameState.board[piece[0]][piece[1]] = "WW"
+        if color=="B":
+            for piece in pieces:
+                #print(piece[1], " , ", 0)
+                if piece[0] == 0:
+                    GameState.board[piece[0]][piece[1]] = "BB"
 
 class AlphaBetaAgent:
-    def evaluationFunction(self, GameState, color):
-        return GameState.getPiecesCount(color)  # change to something more complicated
+    def evaluationFunction(self, game, color):
+        return game.getPiecesCount(color)  # change to something more complicated. Incorporate kings, potential kings, potential captures even?
 
-    def getAction(self, GameState, Actions, color):
+    def getAction(self, game, Actions, color):
         # need to figure out default move
         if color == "B":
             bestAction = [[5, 0], "NE"]
@@ -238,22 +256,25 @@ class AlphaBetaAgent:
         bestValue = float('-inf')
         a = bestValue
         b = -bestValue
-        for action in Actions.getPossibleActions(GameState, color):
+        possible = Actions.getPossibleActions(game, color)
+        for choice in range(len(possible)):
             newState = GameState()
-            Actions.applyAction(newState, [action])
+            print("attempting to apply action", possible[choice])
+            Actions.applyAction(newState, [possible[choice]])## should call with actions as [a[choice]], where a is possible actions, b is index.
             curValue = self.prune(newState, 10, a, b, color, color, Actions)
             if curValue > bestValue:
                 bestValue = curValue
-                bestAction = action
+                bestAction = possible[choice]
+                print("bestAction = ", possible[choice])
             if bestValue > b:
                 return bestValue
             a = max(a, curValue)
         return bestAction
 
-    def prune(self, GameState, depth, a, b, color, maximizingColor, Actions):
-        if depth == 0 or GameState.isGameOver():
-            return self.evaluationFunction(GameState, color)
-        potentialStates = GameState.generateSuccessors(Actions, color)
+    def prune(self, game, depth, a, b, color, maximizingColor, Actions):
+        if depth == 0 or game.isGameOver():
+            return self.evaluationFunction(game, color)
+        potentialStates = game.generateSuccessors(Actions, color)
         if color == "W":
             color = "B"
         else:
@@ -287,8 +308,12 @@ def main():
     agent2 = str(input()).upper()
 
     game.board = game.capturingBoard
+    #game.board = game.board
 
-    if (agent1 == "PLAYER" or agent1=="P") and (agent2 == "PLAYER" or agent2=="P"):       #just for testing, real should implement playing
+    agents = [agent1,agent2]
+
+    if agents.count("PLAYER")==2 or agents.count("P")==2 or agents.count("1")==2:
+        print("2 player")
         while not game.isGameOver():
             print(np.matrix(game.board))
             a = actions.getPossibleActions(game, game.currentTurn)
@@ -299,6 +324,39 @@ def main():
             for move in range(len(a)):
                 print(move, ": ", a[move])
             choice = int(input())
+            actions.applyAction(game,[a[choice]])
+            game.changeTurn()
+    """
+    if (agents.count("PLAYER")==1 or agents.count("P")==1 or agents.count("1")==1) and (agents.count("AI")==1 or agents.count("A")==1 or agents.count("2")==1):
+        print("1 player, 1 AI")
+        ai = AlphaBetaAgent()
+        while not game.isGameOver():
+            print(np.matrix(game.board))
+            a = actions.getPossibleActions(game, game.currentTurn)
+            if len(a)==0:
+                print("Game Over")
+                return
+            print("Input an integer 0 or greater among moves available for", game.currentTurn, " :")
+            for move in range(len(a)):
+                print(move, ": ", a[move])
+            choice = int(input())
+            actions.applyAction(game,[a[choice]])
+            game.changeTurn()
+    """
+    if agents.count("AI")==2 or agents.count("A")==2 or agents.count("2")==2:
+        print("2 AI")
+        ai = AlphaBetaAgent()
+        while not game.isGameOver():
+            print(np.matrix(game.board))
+            a = actions.getPossibleActions(game, game.currentTurn)
+            if len(a)==0:
+                print("Game Over")
+                return
+            ##print("Input an integer 0 or greater among moves available for", game.currentTurn, " :")
+            ##for move in range(len(a)):
+            ##    print(move, ": ", a[move])
+            ##choice = int(input())
+            choice = ai.getAction(game, actions, game.currentTurn)
             actions.applyAction(game,[a[choice]])
             game.changeTurn()
 
