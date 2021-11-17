@@ -13,7 +13,16 @@ import numpy as np
 
 class GameState:
     currentTurn = "B"
+    board = [[0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, "W", 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, "W", 0, "W", 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, "W", 0, 0, 0, 0, 0],
+             [0, 0, 0, "B", 0, 0, 0, 0]]
 
+    '''
     board = [[0, "W", 0, "W", 0, "W", 0, "W"],
                 ["W", 0, "W", 0, "W", 0, "W", 0],
                 [ 0, "W", 0, "W", 0, "W", 0, "W"],
@@ -22,15 +31,7 @@ class GameState:
                 ["B", 0, "B", 0, "B", 0, "B", 0],
                 [ 0, "B", 0, "B", 0, "B", 0, "B"],
                 ["B", 0, "B", 0, "B", 0, "B", 0]]
-
-    capturingBoard = [[0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, "W", 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, "W", 0, "W", 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, "W", 0, "W", 0, 0, 0],
-                    [0, 0, 0, "B", 0, 0, 0, 0]]
+    '''
 
     def getPiecesLocations(self, color):
         retList = []
@@ -58,9 +59,9 @@ class GameState:
         else:
             self.currentTurn = "B"
 
-    def generateSuccessors(self, Actions, color):
+    def generateSuccessors(self, actionsObject, color):
         retList = []
-        possible = Actions.getPossibleActions(self, color)
+        possible = actionsObject.getPossibleActions(self, color)
         for action in range(len(possible)):
             thisGame = GameState()
             #weird multicapture getaround?
@@ -75,26 +76,15 @@ class GameState:
             retList.append(thisGame)
         return retList
 
-    def makeKings(self):
-        if self.currentTurn == "W":
-            for pieceLocation in self.getPiecesLocations("W"):
-                if pieceLocation[0] == 7:
-                    self.board[pieceLocation[0]][pieceLocation[1]] = "WW"
-        else:
-            for pieceLocation in self.getPiecesLocations("B"):
-                if pieceLocation[0] == 0:
-                    self.board[pieceLocation[0]][pieceLocation[1]] = "BB"
-
-    def carryOutTurn(self, actions):
+    def carryOutTurn(self, actionsObject):
         action = AlphaBetaAgent.getAction()  # need to implement
-        actions.applyAction(self, action)
-        self.makeKings()
+        actionsObject.applyAction(self, action)
         self.changeTurn()
 
-    def checkCapturing(self, GameState, pieceLocation, pieceColor):     
+    def checkCapturing(self, gameObject, pieceLocation, pieceColor):
         #pieceColor = GameState.board[piece]         #can be W, B, WW, BB
         teamColor = pieceColor[0]                   #corrects for kingness
-        boardMax = len(GameState.board)             #make sure not to index at this row / column. 
+        boardMax = len(gameObject.board)             #make sure not to index at this row / column.
         # y+2 < boardMax, as a capture moves you 2 spaces
         # y-1 > 0 for the same reason
         x = pieceLocation[0]
@@ -102,11 +92,12 @@ class GameState:
         retList = []
         if (pieceColor != "W") and (x>1):                   #white or king, can go South, decreasing X. Can jump to row 0.
             if (y>1):
-                swPoint = GameState.board[x - 1][y - 1]
-                jumpPoint = GameState.board[x - 2][y - 2]           #these two get the contents- should be enemy and empty respectively
+                swPoint = gameObject.board[x - 1][y - 1]
+                jumpPoint = gameObject.board[x - 2][y - 2]           #these two get the contents- should be enemy and empty respectively
                 if (swPoint != teamColor and swPoint != 2*teamColor and swPoint != 0) and (jumpPoint == 0):
                     newPiece = [x-2,y-2]
-                    further = self.checkCapturing(GameState, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    print("Piece location: " + str(pieceLocation) + " new piece location: " + str(newPiece) + " direction: NW")
+                    further = self.checkCapturing(gameObject, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
                     move = [[pieceLocation, "Capture NW"]]
                     if further == []:
                         if retList == []:
@@ -115,11 +106,13 @@ class GameState:
                         for capture in further:
                             retList.append(move + capture)                 #multiple capture options NE, SE, NW, SW. Add those to simple capture.
             if (y<boardMax-2):
-                sePoint = GameState.board[x - 1][y + 1]
-                jumpPoint = GameState.board[x - 2][y + 2]
+                sePoint = gameObject.board[x - 1][y + 1]
+                jumpPoint = gameObject.board[x - 2][y + 2]
                 if (sePoint != teamColor and sePoint != 2*teamColor and sePoint != 0) and (jumpPoint == 0):
                     newPiece = [x-2,y+2]
-                    further = self.checkCapturing(GameState, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
+                        newPiece) + " direction: NE")
+                    further = self.checkCapturing(gameObject, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
                     move = [[pieceLocation, "Capture NE"]]
                     if further == []:
                         retList.append(move)                            #simple 1 capture
@@ -132,6 +125,8 @@ class GameState:
                 jumpPoint = GameState.board[x + 2][y - 2]
                 if (nwPoint != teamColor and nwPoint != 2*teamColor and nwPoint != 0) and (jumpPoint == 0):    # and nwPoint != 2*teamColor
                     newPiece = [x+2,y-2]
+                    print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
+                        newPiece) + " direction: SW")
                     further = self.checkCapturing(GameState, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
                     move = [[pieceLocation, "Capture SW"]]
                     if further == []:
@@ -144,6 +139,8 @@ class GameState:
                 jumpPoint = GameState.board[x + 2][y + 2]
                 if (nePoint != teamColor and nePoint != 2*teamColor and nePoint != 0) and (jumpPoint == 0):
                     newPiece = [x+2,y+2]
+                    print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
+                        newPiece) + " direction: SE")
                     further = self.checkCapturing(GameState, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
                     move = [[pieceLocation, "Capture SE"]]
                     if further == []:
@@ -188,7 +185,7 @@ class Actions:
 
         capturePossible = False
         for piece in pieces:  # piece = [row, col]
-            pieceColor = pieceColor = GameState.board[piece[0]][piece[1]]
+            pieceColor = GameState.board[piece[0]][piece[1]]
             capturingMoves = GameState.checkCapturing(GameState, piece, pieceColor)
             if len(capturingMoves) > 0:
                 if not capturePossible:
@@ -198,41 +195,46 @@ class Actions:
                 capturePossible = True
         return retList
 
-    def applyAction(self, GameState, actions):  # action = [[row, col], "direction"], need to implement capturing
+    def applyAction(self, game, actions):  # action = [[row, col], "direction"], need to implement capturing
+        if game.isGameOver():
+            return
         actions = actions[0]
         for action in actions:
             direction = action[1]
             location = action[0]
-            color = GameState.board[location[0]][location[1]]
+            print("Number of pieces left: Black: " + str(game.getPiecesCount("B")) + " White: " + str(game.getPiecesCount("W")))
+            print("Current action: " + str(action))
+            color = game.board[location[0]][location[1]]
             if direction == "NE":
-                GameState.board[location[0]][location[1]] = 0
-                GameState.board[location[0] - 1][location[1] + 1] = color
+                game.board[location[0]][location[1]] = 0
+                game.board[location[0] - 1][location[1] + 1] = color
             elif direction == "SE":
-                GameState.board[location[0]][location[1]] = 0
-                GameState.board[location[0] + 1][location[1] + 1] = color
+                game.board[location[0]][location[1]] = 0
+                game.board[location[0] + 1][location[1] + 1] = color
             elif direction == "SW":
-                GameState.board[location[0]][location[1]] = 0
-                GameState.board[location[0] + 1][location[1] - 1] = color
+                game.board[location[0]][location[1]] = 0
+                game.board[location[0] + 1][location[1] - 1] = color
             elif direction == "NW":
-                GameState.board[location[0]][location[1]] = 0
-                GameState.board[location[0] - 1][location[1] - 1] = color
+                game.board[location[0]][location[1]] = 0
+                game.board[location[0] - 1][location[1] - 1] = color
             elif direction == "Capture NE":
-                GameState.board[location[0]][location[1]] = 0
-                GameState.board[location[0] - 1][location[1] + 1] = 0
-                GameState.board[location[0] - 2][location[1] + 2] = color
+                game.board[location[0]][location[1]] = 0
+                game.board[location[0] - 1][location[1] + 1] = 0
+                game.board[location[0] - 2][location[1] + 2] = color
             elif direction == "Capture SE":
-                GameState.board[location[0]][location[1]] = 0
-                GameState.board[location[0] + 1][location[1] + 1] = 0
-                GameState.board[location[0] + 2][location[1] + 2] = color
+                game.board[location[0]][location[1]] = 0
+                game.board[location[0] + 1][location[1] + 1] = 0
+                game.board[location[0] + 2][location[1] + 2] = color
             elif direction == "Capture SW":
-                GameState.board[location[0]][location[1]] = 0
-                GameState.board[location[0] + 1][location[1] - 1] = 0
-                GameState.board[location[0] + 2][location[1] - 2] = color
+                game.board[location[0]][location[1]] = 0
+                game.board[location[0] + 1][location[1] - 1] = 0
+                game.board[location[0] + 2][location[1] - 2] = color
             elif direction == "Capture NW":
-                GameState.board[location[0]][location[1]] = 0
-                GameState.board[location[0] - 1][location[1] - 1] = 0
-                GameState.board[location[0] - 2][location[1] - 2] = color
-        self.promoting(GameState, color)
+                game.board[location[0]][location[1]] = 0
+                game.board[location[0] - 1][location[1] - 1] = 0
+                game.board[location[0] - 2][location[1] - 2] = color
+        self.promoting(game, color)
+        print(np.matrix(game.board))
     
     def promoting(self, GameState, color):
         boardMax = len(GameState.board)
@@ -310,7 +312,7 @@ def main():
     print("Choose Agent 2- AI or PLAYER")
     agent2 = str(input()).upper()
 
-    game.board = game.capturingBoard
+    #game.board = game.capturingBoard
     #game.board = game.board
 
     agents = [agent1,agent2]
@@ -339,7 +341,8 @@ def main():
                 print("Game Over")
                 return
             choice = ai.getAction(game, actions, game.currentTurn)
-            actions.applyAction(game,[a[choice]])
+            print("Choice: " + str(choice))
+            actions.applyAction(game,choice)
             game.changeTurn()
     #implement PvE
 
