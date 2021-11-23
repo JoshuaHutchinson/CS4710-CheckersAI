@@ -5,6 +5,7 @@
 # Lose when no pieces left or no moves left
 
 import numpy as np
+import random
 
 # TO DO:
 # Integrate capturing, testing - Justin
@@ -13,6 +14,16 @@ import numpy as np
 
 class GameState:
     currentTurn = "B"
+    
+    board = [[0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, "WW", 0, 0, 0, 0],
+             [0, 0, "BB", 0, "BB", 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0]]
+    '''
     board = [[0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, "W", 0, 0, 0, 0, 0],
@@ -22,7 +33,7 @@ class GameState:
              [0, 0, "W", 0, 0, 0, 0, 0],
              [0, 0, 0, "B", 0, 0, 0, 0]]
 
-    '''
+    
     board = [[0, "W", 0, "W", 0, "W", 0, "W"],
                 ["W", 0, "W", 0, "W", 0, "W", 0],
                 [ 0, "W", 0, "W", 0, "W", 0, "W"],
@@ -255,7 +266,7 @@ class AlphaBetaAgent:
     def getAction(self, gameObject, actionsObject, color):
         # need to figure out default move
         if color == "B":
-            bestAction = [[5, 0], "NE"]
+            bestAction = [[5, 0], "NE"]     #default action should just be first item in actionsObject.
         else:
             bestAction = [[2, 7], "SW"]
         bestValue = float('-inf')
@@ -302,21 +313,26 @@ class AlphaBetaAgent:
                 b = min(b, v)
             return v
 
+class RandomAgent:
+    def getAction(self, gameObject, actionsObject, color):
+        possible = actionsObject.getPossibleActions(gameObject, color)
+        r = random.randint(0, len(possible)-1)
+        return r
 
 def main():
     game = GameState()
     actions = Actions()
 
-    print("Choose Agent 1- AI or PLAYER")
+    print("Choose Agent 1- PLAYER (P), RANDOM (R), or MINIMAX(M)")
     agent1 = str(input()).upper()
-    print("Choose Agent 2- AI or PLAYER")
+    print("Choose Agent 2- PLAYER (P), RANDOM (R), or MINIMAX(M)")
     agent2 = str(input()).upper()
 
     #game.board = game.capturingBoard
     #game.board = game.board
 
-    agents = [agent1,agent2]
-
+    agents = {"B":agent1, "W":agent2}
+    """
     if agents.count("PLAYER")==2 or agents.count("P")==2 or agents.count("1")==2:
         print("2 player")
         while not game.isGameOver():
@@ -344,8 +360,34 @@ def main():
             print("Choice: " + str(choice))
             actions.applyAction(game,choice)
             game.changeTurn()
-    #implement PvE
-
+    """
+    while not game.isGameOver():
+        print(np.matrix(game.board))
+        a = actions.getPossibleActions(game, game.currentTurn)
+        if len(a)==0:
+            print("Game Over")
+            return
+        if agents[game.currentTurn] == "PLAYER" or agents[game.currentTurn] == "P" or agents[game.currentTurn] == "1":
+            print("Input an integer 0 or greater among moves available for", game.currentTurn, " :")
+            for move in range(len(a)):
+                print(move, ": ", a[move])
+            choice = int(input())
+            try:
+                actions.applyAction(game,[a[choice]])
+            except:
+                actions.applyAction(game,a[choice])
+        if agents[game.currentTurn] == "AI" or agents[game.currentTurn] == "A" or agents[game.currentTurn] == "MINIMAX" or agents[game.currentTurn] == "M" or agents[game.currentTurn] == "2":
+            ai = AlphaBetaAgent()
+            choice = ai.getAction(game, actions, game.currentTurn)
+            actions.applyAction(game,choice)
+        if agents[game.currentTurn] == "R" or agents[game.currentTurn] == "RANDOM" or agents[game.currentTurn] == "3":
+            ai = RandomAgent()
+            choice = int(ai.getAction(game, actions, game.currentTurn))
+            try:
+                actions.applyAction(game,[a[choice]])
+            except:
+                actions.applyAction(game,a[choice])
+        game.changeTurn()
     print("Game Over")
 
 
