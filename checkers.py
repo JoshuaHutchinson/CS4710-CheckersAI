@@ -6,6 +6,7 @@
 
 import numpy as np
 import random
+import copy
 
 # TO DO:
 # Integrate capturing, testing - Justin
@@ -17,11 +18,11 @@ class GameState:
     
     board = [[0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, "WW", 0, "WW", 0, 0, 0],
+             [0, 0, 0, "BB", 0, 0, 0, 0],
+             [0, 0, "WW", 0, "WW", 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, "WW", 0, 0, 0, 0],
-             [0, 0, "BB", 0, "BB", 0, 0, 0],
+             [0, 0, "WW", 0, "WW", 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0]]
     '''
     board = [[0, 0, 0, 0, 0, 0, 0, 0],
@@ -96,6 +97,7 @@ class GameState:
         #pieceColor = GameState.board[piece]         #can be W, B, WW, BB
         teamColor = pieceColor[0]                   #corrects for kingness
         boardMax = len(gameObject.board)             #make sure not to index at this row / column.
+        further = []
         # y+2 < boardMax, as a capture moves you 2 spaces
         # y-1 > 0 for the same reason
         x = pieceLocation[0]
@@ -108,7 +110,12 @@ class GameState:
                 if (swPoint != teamColor and swPoint != 2*teamColor and swPoint != 0) and (jumpPoint == 0):
                     newPiece = [x-2,y-2]
                     print("Piece location: " + str(pieceLocation) + " new piece location: " + str(newPiece) + " direction: NW")
-                    further = self.checkCapturing(gameObject, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    #gameObject.board[x - 1][y - 1] = 0
+
+                    hypothetical = copy.copy(gameObject)
+                    hypothetical.board[x - 1][y - 1] = 0
+
+                    further = self.checkCapturing(hypothetical, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
                     move = [[pieceLocation, "Capture NW"]]
                     if further == []:
                         if retList == []:
@@ -123,7 +130,12 @@ class GameState:
                     newPiece = [x-2,y+2]
                     print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
                         newPiece) + " direction: NE")
-                    further = self.checkCapturing(gameObject, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    #gameObject.board[x - 1][y + 1] = 0
+
+                    hypothetical = copy.copy(gameObject)
+                    hypothetical.board[x - 1][y + 1] = 0
+
+                    further = self.checkCapturing(hypothetical, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
                     move = [[pieceLocation, "Capture NE"]]
                     if further == []:
                         retList.append(move)                            #simple 1 capture
@@ -138,7 +150,12 @@ class GameState:
                     newPiece = [x+2,y-2]
                     print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
                         newPiece) + " direction: SW")
-                    further = self.checkCapturing(gameObject, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    #gameObject.board[x + 1][y - 1] = 0
+
+                    hypothetical = copy.copy(gameObject)
+                    hypothetical.board[x + 1][y - 1] = 0
+
+                    further = self.checkCapturing(hypothetical, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
                     move = [[pieceLocation, "Capture SW"]]
                     if further == []:
                         retList.append(move)                            #simple 1 capture
@@ -152,7 +169,12 @@ class GameState:
                     newPiece = [x+2,y+2]
                     print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
                         newPiece) + " direction: SE")
-                    further = self.checkCapturing(gameObject, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    #gameObject.board[x + 1][y + 1] = 0
+
+                    hypothetical = copy.copy(gameObject)
+                    hypothetical.board[x + 1][y + 1] = 0
+
+                    further = self.checkCapturing(hypothetical, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
                     move = [[pieceLocation, "Capture SE"]]
                     if further == []:
                         retList.append(move)                            #simple 1 capture
