@@ -8,6 +8,7 @@ import numpy as np
 import random
 import copy
 
+
 # TO DO:
 # Integrate capturing, testing - Justin
 # Implement heuristic and default move for getAction() - Joshua
@@ -16,15 +17,15 @@ import copy
 class GameState:
     def __init__(self):
         self.currentTurn = "B"
-    
+
         self.board = [[0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, "W", 0, "W", 0, 0, 0],
-                 [0, 0, 0, "BB", 0, 0, 0, 0],
-                 [0, 0, "W", 0, "W", 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, "W", 0, "W", 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0]]
+                      [0, 0, 0, 0, 0, 0, 0, 0],
+                      [0, 0, "W", 0, "W", 0, 0, 0],
+                      [0, 0, 0, "BB", 0, 0, 0, 0],
+                      [0, 0, "W", 0, "W", 0, 0, 0],
+                      [0, 0, 0, 0, 0, 0, 0, 0],
+                      [0, 0, "W", 0, "W", 0, 0, 0],
+                      [0, 0, 0, 0, 0, 0, 0, 0]]
 
         print("initialized")
         '''
@@ -36,8 +37,8 @@ class GameState:
                  [0, 0, 0, 0, 0, 0, 0, 0],
                  [0, 0, "W", 0, 0, 0, 0, 0],
                  [0, 0, 0, "B", 0, 0, 0, 0]]
-    
-        
+
+
         self.board = [[0, "W", 0, "W", 0, "W", 0, "W"],
                     ["W", 0, "W", 0, "W", 0, "W", 0],
                     [ 0, "W", 0, "W", 0, "W", 0, "W"],
@@ -79,15 +80,15 @@ class GameState:
         possible = actionsObject.getPossibleActions(self, color)
         for action in range(len(possible)):
             thisGame = GameState()
-            #weird multicapture getaround?
+            # weird multicapture getaround?
             try:
                 single = [possible[action]]
                 actionsObject.applyAction(thisGame, single)
             except:
                 multicapture = possible[action]
                 actionsObject.applyAction(thisGame, multicapture)
-            #print("generating successor ", multicapture)
-            #Actions.applyAction(thisGame, [possible[action]])
+            # print("generating successor ", multicapture)
+            # Actions.applyAction(thisGame, [possible[action]])
             retList.append(thisGame)
         return retList
 
@@ -97,107 +98,115 @@ class GameState:
         self.changeTurn()
 
     def checkCapturing(self, gameObject, pieceLocation, pieceColor):
-        #pieceColor = GameState.board[piece]         #can be W, B, WW, BB
-        teamColor = pieceColor[0]                   #corrects for kingness
-        boardMax = len(gameObject.board)             #make sure not to index at this row / column.
+        # pieceColor = GameState.board[piece]         #can be W, B, WW, BB
+        teamColor = pieceColor[0]  # corrects for kingness
+        boardMax = len(gameObject.board)  # make sure not to index at this row / column.
         further = []
         # y+2 < boardMax, as a capture moves you 2 spaces
         # y-1 > 0 for the same reason
         x = pieceLocation[0]
         y = pieceLocation[1]
         retList = []
-        if (pieceColor != "W") and (x>1):                   #white or king, can go South, decreasing X. Can jump to row 0.
-            if (y>1):
+        if (pieceColor != "W") and (x > 1):  # white or king, can go South, decreasing X. Can jump to row 0.
+            if (y > 1):
                 swPoint = gameObject.board[x - 1][y - 1]
-                jumpPoint = gameObject.board[x - 2][y - 2]           #these two get the contents- should be enemy and empty respectively
-                if (swPoint != teamColor and swPoint != 2*teamColor and swPoint != 0) and (jumpPoint == 0):
-                    newPiece = [x-2,y-2]
-                    print("Piece location: " + str(pieceLocation) + " new piece location: " + str(newPiece) + " direction: NW")
-                    #gameObject.board[x - 1][y - 1] = 0
+                jumpPoint = gameObject.board[x - 2][
+                    y - 2]  # these two get the contents- should be enemy and empty respectively
+                if (swPoint != teamColor and swPoint != 2 * teamColor and swPoint != 0) and (jumpPoint == 0):
+                    newPiece = [x - 2, y - 2]
+                    print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
+                        newPiece) + " direction: NW")
+                    # gameObject.board[x - 1][y - 1] = 0
 
                     hypothetical = copy.deepcopy(gameObject)
-<<<<<<< HEAD
-=======
                     hypothetical.board[x][y] = 0
->>>>>>> 5147f618ee8a594b12eb4c77da8d2de65dbd7866
                     hypothetical.board[x - 1][y - 1] = 0
                     hypothetical.board[x - 2][y - 2] = pieceColor
 
-                    further = self.checkCapturing(hypothetical, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    further = self.checkCapturing(hypothetical, newPiece,
+                                                  pieceColor)  # recursively makes a list of all possible jumps from that position
                     move = [[pieceLocation, "Capture NW"]]
                     if further == []:
                         if retList == []:
-                            retList.append(move)                            #simple 1 capture
+                            retList.append(move)  # simple 1 capture
                     else:
                         for capture in further:
-                            retList.append(move + capture)                 #multiple capture options NE, SE, NW, SW. Add those to simple capture.
-            if (y<boardMax-2):
+                            retList.append(
+                                move + capture)  # multiple capture options NE, SE, NW, SW. Add those to simple capture.
+            if (y < boardMax - 2):
                 sePoint = gameObject.board[x - 1][y + 1]
                 jumpPoint = gameObject.board[x - 2][y + 2]
-                if (sePoint != teamColor and sePoint != 2*teamColor and sePoint != 0) and (jumpPoint == 0):
-                    newPiece = [x-2,y+2]
+                if (sePoint != teamColor and sePoint != 2 * teamColor and sePoint != 0) and (jumpPoint == 0):
+                    newPiece = [x - 2, y + 2]
                     print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
                         newPiece) + " direction: NE")
-                    #gameObject.board[x - 1][y + 1] = 0
+                    # gameObject.board[x - 1][y + 1] = 0
 
                     hypothetical = copy.deepcopy(gameObject)
                     hypothetical.board[x][y] = 0
                     hypothetical.board[x - 1][y + 1] = 0
                     hypothetical.board[x - 2][y + 2] = pieceColor
 
-                    further = self.checkCapturing(hypothetical, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    further = self.checkCapturing(hypothetical, newPiece,
+                                                  pieceColor)  # recursively makes a list of all possible jumps from that position
                     move = [[pieceLocation, "Capture NE"]]
                     if further == []:
-                        retList.append(move)                            #simple 1 capture
+                        retList.append(move)  # simple 1 capture
                     else:
                         for capture in further:
-                            retList.append(move + capture)                 #multiple capture options NE, SE, NW, SW. Add those to simple capture.
-        if (pieceColor != "B") and (x<boardMax-2):                   #black or king, can go North, increasing X.
-            if (y>1):
+                            retList.append(
+                                move + capture)  # multiple capture options NE, SE, NW, SW. Add those to simple capture.
+        if (pieceColor != "B") and (x < boardMax - 2):  # black or king, can go North, increasing X.
+            if (y > 1):
                 nwPoint = gameObject.board[x + 1][y - 1]
                 jumpPoint = gameObject.board[x + 2][y - 2]
-                if (nwPoint != teamColor and nwPoint != 2*teamColor and nwPoint != 0) and (jumpPoint == 0):    # and nwPoint != 2*teamColor
-                    newPiece = [x+2,y-2]
+                if (nwPoint != teamColor and nwPoint != 2 * teamColor and nwPoint != 0) and (
+                        jumpPoint == 0):  # and nwPoint != 2*teamColor
+                    newPiece = [x + 2, y - 2]
                     print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
                         newPiece) + " direction: SW")
-                    #gameObject.board[x + 1][y - 1] = 0
+                    # gameObject.board[x + 1][y - 1] = 0
 
                     hypothetical = copy.deepcopy(gameObject)
                     hypothetical.board[x][y] = 0
                     hypothetical.board[x + 1][y - 1] = 0
                     hypothetical.board[x + 2][y - 2] = pieceColor
 
-                    further = self.checkCapturing(hypothetical, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    further = self.checkCapturing(hypothetical, newPiece,
+                                                  pieceColor)  # recursively makes a list of all possible jumps from that position
                     move = [[pieceLocation, "Capture SW"]]
                     if further == []:
-                        retList.append(move)                            #simple 1 capture
+                        retList.append(move)  # simple 1 capture
                     else:
                         for capture in further:
-                            retList.append(move + capture)                 #multiple capture options NE, SE, NW, SW. Add those to simple capture.
-            if (y<boardMax-2):
+                            retList.append(
+                                move + capture)  # multiple capture options NE, SE, NW, SW. Add those to simple capture.
+            if (y < boardMax - 2):
                 nePoint = gameObject.board[x + 1][y + 1]
                 jumpPoint = gameObject.board[x + 2][y + 2]
-                if (nePoint != teamColor and nePoint != 2*teamColor and nePoint != 0) and (jumpPoint == 0):
-                    newPiece = [x+2,y+2]
+                if (nePoint != teamColor and nePoint != 2 * teamColor and nePoint != 0) and (jumpPoint == 0):
+                    newPiece = [x + 2, y + 2]
                     print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
                         newPiece) + " direction: SE")
-                    #gameObject.board[x + 1][y + 1] = 0
+                    # gameObject.board[x + 1][y + 1] = 0
 
                     hypothetical = copy.deepcopy(gameObject)
                     hypothetical.board[x][y] = 0
                     hypothetical.board[x + 1][y + 1] = 0
                     hypothetical.board[x + 2][y + 2] = pieceColor
 
-                    further = self.checkCapturing(hypothetical, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
+                    further = self.checkCapturing(hypothetical, newPiece,
+                                                  pieceColor)  # recursively makes a list of all possible jumps from that position
                     move = [[pieceLocation, "Capture SE"]]
                     if further == []:
-                        retList.append(move)                            #simple 1 capture
+                        retList.append(move)  # simple 1 capture
                     else:
                         for capture in further:
-                            retList.append(move + capture)                 #multiple capture options NE, SE, NW, SW. Add those to simple capture.
+                            retList.append(
+                                move + capture)  # multiple capture options NE, SE, NW, SW. Add those to simple capture.
         return retList
-        #This gives up to 4 options, each of which may be only the start of a chain
-        #should be able to see the entire jump chain, using recursion
+        # This gives up to 4 options, each of which may be only the start of a chain
+        # should be able to see the entire jump chain, using recursion
 
 
 class Actions:
@@ -205,7 +214,7 @@ class Actions:
         retList = []
         pieces = gameObject.getPiecesLocations(color)
 
-        for piece in pieces: # piece = [row,col]
+        for piece in pieces:  # piece = [row,col]
             pieceColor = gameObject.board[piece[0]][piece[1]]
             if pieceColor != "W":
                 try:
@@ -249,7 +258,8 @@ class Actions:
         for action in actions:
             direction = action[1]
             location = action[0]
-            print("Number of pieces left: Black: " + str(gameObject.getPiecesCount("B")) + " White: " + str(gameObject.getPiecesCount("W")))
+            print("Number of pieces left: Black: " + str(gameObject.getPiecesCount("B")) + " White: " + str(
+                gameObject.getPiecesCount("W")))
             print("Current action: " + str(action))
             color = gameObject.board[location[0]][location[1]]
             if direction == "NE":
@@ -282,27 +292,29 @@ class Actions:
                 gameObject.board[location[0] - 2][location[1] - 2] = color
         self.promoting(gameObject, color)
         print(np.matrix(gameObject.board))
-    
+
     def promoting(self, gameObject, color):
         boardMax = len(gameObject.board)
         pieces = gameObject.getPiecesLocations(color)
-        if color=="W":
+        if color == "W":
             for piece in pieces:
-                if piece[0] == boardMax-1:
+                if piece[0] == boardMax - 1:
                     gameObject.board[piece[0]][piece[1]] = "WW"
-        if color=="B":
+        if color == "B":
             for piece in pieces:
                 if piece[0] == 0:
                     gameObject.board[piece[0]][piece[1]] = "BB"
 
+
 class AlphaBetaAgent:
     def evaluationFunction(self, gameObject, color):
-        return gameObject.getPiecesCount(color)  # change to something more complicated. Incorporate kings, potential kings, potential captures even?
+        return gameObject.getPiecesCount(
+            color)  # change to something more complicated. Incorporate kings, potential kings, potential captures even?
 
     def getAction(self, gameObject, actionsObject, color):
         # need to figure out default move
         if color == "B":
-            bestAction = [[5, 0], "NE"]     #default action should just be first item in actionsObject.
+            bestAction = [[5, 0], "NE"]  # default action should just be first item in actionsObject.
         else:
             bestAction = [[2, 7], "SW"]
         bestValue = float('-inf')
@@ -311,13 +323,14 @@ class AlphaBetaAgent:
         possible = actionsObject.getPossibleActions(gameObject, color)
         for choice in range(len(possible)):
             newState = GameState()
-            #print("attempting to apply action", possible[choice])
-            actionsObject.applyAction(newState, [possible[choice]])## should call with actions as [a[choice]], where a is possible actions, b is index.
+            # print("attempting to apply action", possible[choice])
+            actionsObject.applyAction(newState, [
+                possible[choice]])  ## should call with actions as [a[choice]], where a is possible actions, b is index.
             curValue = self.prune(newState, 10, a, b, color, color, actionsObject)
             if curValue > bestValue:
                 bestValue = curValue
                 bestAction = possible[choice]
-                #print("bestAction = ", possible[choice])
+                # print("bestAction = ", possible[choice])
             if bestValue > b:
                 return bestValue
             a = max(a, curValue)
@@ -349,11 +362,13 @@ class AlphaBetaAgent:
                 b = min(b, v)
             return v
 
+
 class RandomAgent:
     def getAction(self, gameObject, actionsObject, color):
         possible = actionsObject.getPossibleActions(gameObject, color)
-        r = random.randint(0, len(possible)-1)
+        r = random.randint(0, len(possible) - 1)
         return r
+
 
 def main():
     game = GameState()
@@ -364,10 +379,10 @@ def main():
     print("Choose Agent 2- PLAYER (P), RANDOM (R), or MINIMAX(M)")
     agent2 = str(input()).upper()
 
-    #game.board = game.capturingBoard
-    #game.board = game.board
+    # game.board = game.capturingBoard
+    # game.board = game.board
 
-    agents = {"B":agent1, "W":agent2}
+    agents = {"B": agent1, "W": agent2}
     """
     if agents.count("PLAYER")==2 or agents.count("P")==2 or agents.count("1")==2:
         print("2 player")
@@ -400,7 +415,7 @@ def main():
     while not game.isGameOver():
         print(np.matrix(game.board))
         a = actions.getPossibleActions(game, game.currentTurn)
-        if len(a)==0:
+        if len(a) == 0:
             print("Game Over")
             return
         if agents[game.currentTurn] == "PLAYER" or agents[game.currentTurn] == "P" or agents[game.currentTurn] == "1":
@@ -409,20 +424,21 @@ def main():
                 print(move, ": ", a[move])
             choice = int(input())
             try:
-                actions.applyAction(game,[a[choice]])
+                actions.applyAction(game, [a[choice]])
             except:
-                actions.applyAction(game,a[choice])
-        if agents[game.currentTurn] == "AI" or agents[game.currentTurn] == "A" or agents[game.currentTurn] == "MINIMAX" or agents[game.currentTurn] == "M" or agents[game.currentTurn] == "2":
+                actions.applyAction(game, a[choice])
+        if agents[game.currentTurn] == "AI" or agents[game.currentTurn] == "A" or agents[
+            game.currentTurn] == "MINIMAX" or agents[game.currentTurn] == "M" or agents[game.currentTurn] == "2":
             ai = AlphaBetaAgent()
             choice = ai.getAction(game, actions, game.currentTurn)
-            actions.applyAction(game,choice)
+            actions.applyAction(game, choice)
         if agents[game.currentTurn] == "R" or agents[game.currentTurn] == "RANDOM" or agents[game.currentTurn] == "3":
             ai = RandomAgent()
             choice = int(ai.getAction(game, actions, game.currentTurn))
             try:
-                actions.applyAction(game,[a[choice]])
+                actions.applyAction(game, [a[choice]])
             except:
-                actions.applyAction(game,a[choice])
+                actions.applyAction(game, a[choice])
         game.changeTurn()
     print("Game Over")
 
