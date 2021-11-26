@@ -17,7 +17,7 @@ import copy
 class GameState:
     def __init__(self):
         self.currentTurn = "B"
-
+        '''
         self.board = [[0, 0, 0, 0, 0, 0, 0, 0],
                       [0, 0, 0, 0, 0, 0, 0, 0],
                       [0, 0, 0, 0, 0, 0, 0, 0],
@@ -38,7 +38,7 @@ class GameState:
                  [0, 0, "W", 0, "W", 0, 0, 0],
                  [0, 0, 0, 0, 0, 0, 0, 0]]
 
-
+        '''
         self.board = [[0, "W", 0, "W", 0, "W", 0, "W"],
                     ["W", 0, "W", 0, "W", 0, "W", 0],
                     [ 0, "W", 0, "W", 0, "W", 0, "W"],
@@ -64,8 +64,8 @@ class GameState:
     def getPieceColor(self, location):  # should not call on empty space
         return self.board[location[0]][location[1]][0]
 
-    def isGameOver(self):  # add in stale mate checking
-        if self.getPiecesCount("W") == 0 or self.getPiecesCount("B") == 0:
+    def isGameOver(self, actionsObject):  # add in stale mate checking
+        if self.getPiecesCount("W") == 0 or self.getPiecesCount("B") == 0 or len(actionsObject.getPossibleActions(self, "W")) == 0 or len(actionsObject.getPossibleActions(self, "B")) == 0:
             return True
         return False
 
@@ -79,7 +79,7 @@ class GameState:
         retList = []
         possible = actionsObject.getPossibleActions(self, color)
         for action in range(len(possible)):
-            thisGame = GameState()
+            thisGame = copy.deepcopy(self)
             # weird multicapture getaround?
             try:
                 single = [possible[action]]
@@ -252,7 +252,7 @@ class Actions:
         return retList
 
     def applyAction(self, gameObject, actions):  # action = [[row, col], "direction"], need to implement capturing
-        if gameObject.isGameOver():
+        if gameObject.isGameOver(self):
             return
         print("full actions is", actions)
         actions = actions[0]
@@ -333,7 +333,7 @@ class AlphaBetaAgent:
             except:
                 actionsObject.applyAction(newState, possible[choice])
 
-            curValue = self.prune(newState, 10, a, b, color, color, actionsObject)
+            curValue = self.prune(newState, 2, a, b, color, color, actionsObject)
             if curValue > bestValue:
                 bestValue = curValue
                 bestAction = possible[choice]
@@ -344,7 +344,7 @@ class AlphaBetaAgent:
         return bestAction
 
     def prune(self, gameObject, depth, a, b, color, maximizingColor, actionsObject):
-        if depth == 0 or gameObject.isGameOver():
+        if depth == 0 or gameObject.isGameOver(actionsObject):
             return self.evaluationFunction(gameObject, color)
         potentialStates = gameObject.generateSuccessors(actionsObject, color)
         if color == "W":
@@ -390,7 +390,7 @@ def main():
     # game.board = game.board
 
     agents = {"B": agent1, "W": agent2}
-    while not game.isGameOver():
+    while not game.isGameOver(actions):
         print(np.matrix(game.board))
         a = actions.getPossibleActions(game, game.currentTurn)
         if len(a) == 0:
