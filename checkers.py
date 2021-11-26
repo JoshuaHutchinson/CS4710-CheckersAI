@@ -28,7 +28,7 @@ class GameState:
                       [0, 0, 0, "B", 0, 0, 0, 0]]
 
         print("initialized")
-        '''
+        
         self.board = [[0, 0, 0, 0, 0, 0, 0, 0],
                  [0, 0, 0, 0, 0, 0, 0, 0],
                  [0, 0, "W", 0, "W", 0, 0, 0],
@@ -47,7 +47,7 @@ class GameState:
                     ["B", 0, "B", 0, "B", 0, "B", 0],
                     [ 0, "B", 0, "B", 0, "B", 0, "B"],
                     ["B", 0, "B", 0, "B", 0, "B", 0]]
-        '''
+
 
     def getPiecesLocations(self, color):
         retList = []
@@ -114,8 +114,8 @@ class GameState:
                     y - 2]  # these two get the contents- should be enemy and empty respectively
                 if (swPoint != teamColor and swPoint != 2 * teamColor and swPoint != 0) and (jumpPoint == 0):
                     newPiece = [x - 2, y - 2]
-                    print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
-                        newPiece) + " direction: NW")
+                    #print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
+                    #    newPiece) + " direction: NW")
                     # gameObject.board[x - 1][y - 1] = 0
 
                     hypothetical = copy.deepcopy(gameObject)
@@ -138,8 +138,8 @@ class GameState:
                 jumpPoint = gameObject.board[x - 2][y + 2]
                 if (sePoint != teamColor and sePoint != 2 * teamColor and sePoint != 0) and (jumpPoint == 0):
                     newPiece = [x - 2, y + 2]
-                    print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
-                        newPiece) + " direction: NE")
+                    #print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
+                    #    newPiece) + " direction: NE")
                     # gameObject.board[x - 1][y + 1] = 0
 
                     hypothetical = copy.deepcopy(gameObject)
@@ -163,8 +163,8 @@ class GameState:
                 if (nwPoint != teamColor and nwPoint != 2 * teamColor and nwPoint != 0) and (
                         jumpPoint == 0):  # and nwPoint != 2*teamColor
                     newPiece = [x + 2, y - 2]
-                    print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
-                        newPiece) + " direction: SW")
+                    #print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
+                    #    newPiece) + " direction: SW")
                     # gameObject.board[x + 1][y - 1] = 0
 
                     hypothetical = copy.deepcopy(gameObject)
@@ -186,8 +186,8 @@ class GameState:
                 jumpPoint = gameObject.board[x + 2][y + 2]
                 if (nePoint != teamColor and nePoint != 2 * teamColor and nePoint != 0) and (jumpPoint == 0):
                     newPiece = [x + 2, y + 2]
-                    print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
-                        newPiece) + " direction: SE")
+                    #print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
+                    #    newPiece) + " direction: SE")
                     # gameObject.board[x + 1][y + 1] = 0
 
                     hypothetical = copy.deepcopy(gameObject)
@@ -254,15 +254,15 @@ class Actions:
     def applyAction(self, gameObject, actions):  # action = [[row, col], "direction"], need to implement capturing
         if gameObject.isGameOver(self):
             return
-        print("full actions is", actions)
+        #print("full actions is", actions)
         actions = actions[0]
         for action in actions:
             direction = action[1]
             location = action[0]
-            print("Number of pieces left: Black: " + str(gameObject.getPiecesCount("B")) + " White: " + str(
-                gameObject.getPiecesCount("W")))
-            print("Current action: " + str(action))
-            print("Current board", print(np.matrix(gameObject.board)))
+            #print("Number of pieces left: Black: " + str(gameObject.getPiecesCount("B")) + " White: " + str(
+            #    gameObject.getPiecesCount("W")))
+            #print("Current action: " + str(action))
+            #print("Current board", print(np.matrix(gameObject.board)))
             color = gameObject.board[location[0]][location[1]]
             if direction == "NE":
                 gameObject.board[location[0]][location[1]] = 0
@@ -293,7 +293,7 @@ class Actions:
                 gameObject.board[location[0] - 1][location[1] - 1] = 0
                 gameObject.board[location[0] - 2][location[1] - 2] = color
         self.promoting(gameObject, color)
-        print(np.matrix(gameObject.board))
+        #print(np.matrix(gameObject.board))
 
     def promoting(self, gameObject, color):
         boardMax = len(gameObject.board)
@@ -310,7 +310,11 @@ class Actions:
 
 class AlphaBetaAgent:
     def evaluationFunction(self, gameObject, color):
-        return gameObject.getPiecesCount(
+        if color == "B":
+            color = "W"
+        else:
+            color = "B"
+        return -1 * gameObject.getPiecesCount(
             color)  # change to something more complicated. Incorporate kings, potential kings, potential captures even?
 
     def getAction(self, gameObject, actionsObject, color):
