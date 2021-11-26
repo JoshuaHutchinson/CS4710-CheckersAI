@@ -17,28 +17,28 @@ import copy
 class GameState:
     def __init__(self):
         self.currentTurn = "B"
-        '''
-        self.board = [[0, 0, 0, 0, 0, 0, 0, 0],
-                      [0, 0, 0, 0, 0, 0, 0, 0],
-                      [0, 0, "W", 0, "W", 0, 0, 0],
-                      [0, 0, 0, "BB", 0, 0, 0, 0],
-                      [0, 0, "W", 0, "W", 0, 0, 0],
-                      [0, 0, 0, 0, 0, 0, 0, 0],
-                      [0, 0, "W", 0, "W", 0, 0, 0],
-                      [0, 0, 0, 0, 0, 0, 0, 0]]
-        '''
-        # print("initialized")
 
         self.board = [[0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, "W", 0, 0, 0, 0, 0],
-                 [0, 0, 0, "B", 0, 0, 0, 0]]
+                      [0, 0, 0, 0, 0, 0, 0, 0],
+                      [0, 0, 0, 0, 0, 0, 0, 0],
+                      [0, 0, 0, 0, 0, 0, 0, 0],
+                      [0, 0, 0, 0, 0, 0, 0, 0],
+                      [0, 0, 0, 0, 0, 0, 0, 0],
+                      [0, 0, "W", 0, 0, 0, 0, 0],
+                      [0, 0, 0, "B", 0, 0, 0, 0]]
 
+        print("initialized")
         '''
+        self.board = [[0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, "W", 0, "W", 0, 0, 0],
+                 [0, 0, 0, "BB", 0, 0, 0, 0],
+                 [0, 0, "W", 0, "W", 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, "W", 0, "W", 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0]]
+
+
         self.board = [[0, "W", 0, "W", 0, "W", 0, "W"],
                     ["W", 0, "W", 0, "W", 0, "W", 0],
                     [ 0, "W", 0, "W", 0, "W", 0, "W"],
@@ -64,8 +64,8 @@ class GameState:
     def getPieceColor(self, location):  # should not call on empty space
         return self.board[location[0]][location[1]][0]
 
-    def isGameOver(self, actionsObject):  # add in stale mate checking
-        if self.getPiecesCount("W") == 0 or self.getPiecesCount("B") == 0 or len(actionsObject.getPossibleActions(self, "W")) == 0 or len(actionsObject.getPossibleActions(self, "B")) == 0:
+    def isGameOver(self):  # add in stale mate checking
+        if self.getPiecesCount("W") == 0 or self.getPiecesCount("B") == 0:
             return True
         return False
 
@@ -79,7 +79,7 @@ class GameState:
         retList = []
         possible = actionsObject.getPossibleActions(self, color)
         for action in range(len(possible)):
-            thisGame = copy.deepcopy(self)
+            thisGame = GameState()
             # weird multicapture getaround?
             try:
                 single = [possible[action]]
@@ -252,16 +252,17 @@ class Actions:
         return retList
 
     def applyAction(self, gameObject, actions):  # action = [[row, col], "direction"], need to implement capturing
-        if gameObject.isGameOver(self):
+        if gameObject.isGameOver():
             return
+        print("full actions is", actions)
         actions = actions[0]
         for action in actions:
             direction = action[1]
             location = action[0]
-            print(str(action))
             print("Number of pieces left: Black: " + str(gameObject.getPiecesCount("B")) + " White: " + str(
                 gameObject.getPiecesCount("W")))
             print("Current action: " + str(action))
+            print("Current board", print(np.matrix(gameObject.board)))
             color = gameObject.board[location[0]][location[1]]
             if direction == "NE":
                 gameObject.board[location[0]][location[1]] = 0
@@ -325,8 +326,13 @@ class AlphaBetaAgent:
         for choice in range(len(possible)):
             newState = GameState()
             # print("attempting to apply action", possible[choice])
-            actionsObject.applyAction(newState, [
-                possible[choice]])  ## should call with actions as [a[choice]], where a is possible actions, b is index.
+            # actionsObject.applyAction(newState, [possible[choice]])## should call with actions as [a[choice]], where a is possible actions, b is index.
+
+            try:
+                actionsObject.applyAction(newState, [possible[choice]])
+            except:
+                actionsObject.applyAction(newState, possible[choice])
+
             curValue = self.prune(newState, 10, a, b, color, color, actionsObject)
             if curValue > bestValue:
                 bestValue = curValue
@@ -338,7 +344,7 @@ class AlphaBetaAgent:
         return bestAction
 
     def prune(self, gameObject, depth, a, b, color, maximizingColor, actionsObject):
-        if depth == 0 or gameObject.isGameOver(actionsObject):
+        if depth == 0 or gameObject.isGameOver():
             return self.evaluationFunction(gameObject, color)
         potentialStates = gameObject.generateSuccessors(actionsObject, color)
         if color == "W":
@@ -384,36 +390,7 @@ def main():
     # game.board = game.board
 
     agents = {"B": agent1, "W": agent2}
-    """
-    if agents.count("PLAYER")==2 or agents.count("P")==2 or agents.count("1")==2:
-        print("2 player")
-        while not game.isGameOver():
-            print(np.matrix(game.board))
-            a = actions.getPossibleActions(game, game.currentTurn)
-            if len(a)==0:
-                print("Game Over")
-                return
-            print("Input an integer 0 or greater among moves available for", game.currentTurn, " :")
-            for move in range(len(a)):
-                print(move, ": ", a[move])
-            choice = int(input())
-            actions.applyAction(game,[a[choice]])
-            game.changeTurn()
-    if agents.count("AI")==2 or agents.count("A")==2 or agents.count("2")==2:
-        print("2 AI")
-        ai = AlphaBetaAgent()
-        while not game.isGameOver():
-            print(np.matrix(game.board))
-            a = actions.getPossibleActions(game, game.currentTurn)
-            if len(a)==0:
-                print("Game Over")
-                return
-            choice = ai.getAction(game, actions, game.currentTurn)
-            print("Choice: " + str(choice))
-            actions.applyAction(game,choice)
-            game.changeTurn()
-    """
-    while not game.isGameOver(actions):
+    while not game.isGameOver():
         print(np.matrix(game.board))
         a = actions.getPossibleActions(game, game.currentTurn)
         if len(a) == 0:
@@ -432,7 +409,10 @@ def main():
             game.currentTurn] == "MINIMAX" or agents[game.currentTurn] == "M" or agents[game.currentTurn] == "2":
             ai = AlphaBetaAgent()
             choice = ai.getAction(game, actions, game.currentTurn)
-            actions.applyAction(game, choice)
+            try:
+                actions.applyAction(game, [choice])
+            except:
+                actions.applyAction(game, choice)
         if agents[game.currentTurn] == "R" or agents[game.currentTurn] == "RANDOM" or agents[game.currentTurn] == "3":
             ai = RandomAgent()
             choice = int(ai.getAction(game, actions, game.currentTurn))
