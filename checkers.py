@@ -113,7 +113,7 @@ class GameState:
                     print("Piece location: " + str(pieceLocation) + " new piece location: " + str(newPiece) + " direction: NW")
                     #gameObject.board[x - 1][y - 1] = 0
 
-                    hypothetical = copy.copy(gameObject)
+                    hypothetical = copy.deepcopy(gameObject)
                     hypothetical.board[x - 1][y - 1] = 0
 
                     further = self.checkCapturing(hypothetical, newPiece, pieceColor)    #recursively makes a list of all possible jumps from that position
@@ -220,7 +220,7 @@ class Actions:
         capturePossible = False
         for piece in pieces:  # piece = [row, col]
             pieceColor = gameObject.board[piece[0]][piece[1]]
-            capturingMoves = gameObject.checkCapturing(GameState, piece, pieceColor)
+            capturingMoves = gameObject.checkCapturing(gameObject, piece, pieceColor)
             if len(capturingMoves) > 0:
                 if not capturePossible:
                     retList = capturingMoves
@@ -271,16 +271,16 @@ class Actions:
         print(np.matrix(gameObject.board))
     
     def promoting(self, gameObject, color):
-        boardMax = len(GameState.board)
+        boardMax = len(gameObject.board)
         pieces = gameObject.getPiecesLocations(color)
         if color=="W":
             for piece in pieces:
                 if piece[0] == boardMax-1:
-                    GameState.board[piece[0]][piece[1]] = "WW"
+                    gameObject.board[piece[0]][piece[1]] = "WW"
         if color=="B":
             for piece in pieces:
                 if piece[0] == 0:
-                    GameState.board[piece[0]][piece[1]] = "BB"
+                    gameObject.board[piece[0]][piece[1]] = "BB"
 
 class AlphaBetaAgent:
     def evaluationFunction(self, gameObject, color):
