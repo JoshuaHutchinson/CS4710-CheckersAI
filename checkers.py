@@ -29,14 +29,14 @@ class GameState:
                  [0, 0, 0, 0, 0, 0, 0, 0]]
 
         '''
-        self.board = [[0, "W", 0, "W", 0, "W", 0, "W"],
-                    ["W", 0, "W", 0, "W", 0, "W", 0],
-                    [ 0, "W", 0, "W", 0, "W", 0, "W"],
-                    [ 0,  0,  0,  0,  0,  0,  0,  0],
-                    [ 0,  0,  0,  0,  0,  0,  0,  0],
-                    ["B", 0, "B", 0, "B", 0, "B", 0],
-                    [ 0, "B", 0, "B", 0, "B", 0, "B"],
-                    ["B", 0, "B", 0, "B", 0, "B", 0]]
+        self.board = [["-", "W", "-", "W", "-", "W", "-", "W"],
+                    ["W", "-", "W", "-", "W", "-", "W", "-"],
+                    [ "-", "W", "-", "W", "-", "W", "-", "W"],
+                    [ "-", "-", "-", "-", "-", "-", "-", "-"],
+                    [ "-", "-", "-", "-", "-", "-", "-", "-"],
+                    ["B", "-", "B", "-", "B", "-", "B", "-"],
+                    [ "-", "B", "-", "B", "-", "B", "-", "B"],
+                    ["B", "-", "B", "-", "B", "-", "B", "-"]]
 
     def getPiecesLocations(self, color):
         retList = []
@@ -110,15 +110,15 @@ class GameState:
                 swPoint = gameObject.board[x - 1][y - 1]
                 jumpPoint = gameObject.board[x - 2][
                     y - 2]  # these two get the contents- should be enemy and empty respectively
-                if (swPoint != teamColor and swPoint != 2 * teamColor and swPoint != 0) and (jumpPoint == 0):
+                if (swPoint != teamColor and swPoint != 2 * teamColor and swPoint != "-") and (jumpPoint == "-"):
                     newPiece = [x - 2, y - 2]
                     #print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
                     #    newPiece) + " direction: NW")
                     # gameObject.board[x - 1][y - 1] = 0
 
                     hypothetical = copy.deepcopy(gameObject)
-                    hypothetical.board[x][y] = 0
-                    hypothetical.board[x - 1][y - 1] = 0
+                    hypothetical.board[x][y] = "-"
+                    hypothetical.board[x - 1][y - 1] = "-"
                     hypothetical.board[x - 2][y - 2] = pieceColor
 
                     further = self.checkCapturing(hypothetical, newPiece,
@@ -134,15 +134,15 @@ class GameState:
             if (y < boardMax - 2):
                 sePoint = gameObject.board[x - 1][y + 1]
                 jumpPoint = gameObject.board[x - 2][y + 2]
-                if (sePoint != teamColor and sePoint != 2 * teamColor and sePoint != 0) and (jumpPoint == 0):
+                if (sePoint != teamColor and sePoint != 2 * teamColor and sePoint != "-") and (jumpPoint == "-"):
                     newPiece = [x - 2, y + 2]
                     #print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
                     #    newPiece) + " direction: NE")
                     # gameObject.board[x - 1][y + 1] = 0
 
                     hypothetical = copy.deepcopy(gameObject)
-                    hypothetical.board[x][y] = 0
-                    hypothetical.board[x - 1][y + 1] = 0
+                    hypothetical.board[x][y] = "-"
+                    hypothetical.board[x - 1][y + 1] = "-"
                     hypothetical.board[x - 2][y + 2] = pieceColor
 
                     further = self.checkCapturing(hypothetical, newPiece,
@@ -158,16 +158,16 @@ class GameState:
             if (y > 1):
                 nwPoint = gameObject.board[x + 1][y - 1]
                 jumpPoint = gameObject.board[x + 2][y - 2]
-                if (nwPoint != teamColor and nwPoint != 2 * teamColor and nwPoint != 0) and (
-                        jumpPoint == 0):  # and nwPoint != 2*teamColor
+                if (nwPoint != teamColor and nwPoint != 2 * teamColor and nwPoint != "-") and (
+                        jumpPoint == "-"):  # and nwPoint != 2*teamColor
                     newPiece = [x + 2, y - 2]
                     #print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
                     #    newPiece) + " direction: SW")
                     # gameObject.board[x + 1][y - 1] = 0
 
                     hypothetical = copy.deepcopy(gameObject)
-                    hypothetical.board[x][y] = 0
-                    hypothetical.board[x + 1][y - 1] = 0
+                    hypothetical.board[x][y] = "-"
+                    hypothetical.board[x + 1][y - 1] = "-"
                     hypothetical.board[x + 2][y - 2] = pieceColor
 
                     further = self.checkCapturing(hypothetical, newPiece,
@@ -182,15 +182,15 @@ class GameState:
             if (y < boardMax - 2):
                 nePoint = gameObject.board[x + 1][y + 1]
                 jumpPoint = gameObject.board[x + 2][y + 2]
-                if (nePoint != teamColor and nePoint != 2 * teamColor and nePoint != 0) and (jumpPoint == 0):
+                if (nePoint != teamColor and nePoint != 2 * teamColor and nePoint != "-") and (jumpPoint == "-"):
                     newPiece = [x + 2, y + 2]
                     #print("Piece location: " + str(pieceLocation) + " new piece location: " + str(
                     #    newPiece) + " direction: SE")
                     # gameObject.board[x + 1][y + 1] = 0
 
                     hypothetical = copy.deepcopy(gameObject)
-                    hypothetical.board[x][y] = 0
-                    hypothetical.board[x + 1][y + 1] = 0
+                    hypothetical.board[x][y] = "-"
+                    hypothetical.board[x + 1][y + 1] = "-"
                     hypothetical.board[x + 2][y + 2] = pieceColor
 
                     further = self.checkCapturing(hypothetical, newPiece,
@@ -216,23 +216,23 @@ class Actions:
             pieceColor = gameObject.board[piece[0]][piece[1]]
             if pieceColor != "W":
                 try:
-                    if gameObject.board[piece[0] - 1][piece[1] - 1] == 0 and piece[0] > 0 and piece[1] > 0:
+                    if gameObject.board[piece[0] - 1][piece[1] - 1] == "-" and piece[0] > 0 and piece[1] > 0:
                         retList.append([[piece, "NW"]])
                 except:
                     pass
                 try:
-                    if gameObject.board[piece[0] - 1][piece[1] + 1] == 0 and piece[0] > 0 and piece[1] < 7:
+                    if gameObject.board[piece[0] - 1][piece[1] + 1] == "-" and piece[0] > 0 and piece[1] < 7:
                         retList.append([[piece, "NE"]])
                 except:
                     pass
             if pieceColor != "B":
                 try:
-                    if gameObject.board[piece[0] + 1][piece[1] - 1] == 0 and piece[0] < 7 and piece[1] > 0:
+                    if gameObject.board[piece[0] + 1][piece[1] - 1] == "-" and piece[0] < 7 and piece[1] > 0:
                         retList.append([[piece, "SW"]])
                 except:
                     pass
                 try:
-                    if gameObject.board[piece[0] + 1][piece[1] + 1] == 0 and piece[0] < 7 and piece[1] < 7:
+                    if gameObject.board[piece[0] + 1][piece[1] + 1] == "-" and piece[0] < 7 and piece[1] < 7:
                         retList.append([[piece, "SE"]])
                 except:
                     pass
@@ -263,32 +263,32 @@ class Actions:
             #print("Current board", print(np.matrix(gameObject.board)))
             color = gameObject.board[location[0]][location[1]]
             if direction == "NE":
-                gameObject.board[location[0]][location[1]] = 0
+                gameObject.board[location[0]][location[1]] = "-"
                 gameObject.board[location[0] - 1][location[1] + 1] = color
             elif direction == "SE":
-                gameObject.board[location[0]][location[1]] = 0
+                gameObject.board[location[0]][location[1]] = "-"
                 gameObject.board[location[0] + 1][location[1] + 1] = color
             elif direction == "SW":
-                gameObject.board[location[0]][location[1]] = 0
+                gameObject.board[location[0]][location[1]] = "-"
                 gameObject.board[location[0] + 1][location[1] - 1] = color
             elif direction == "NW":
-                gameObject.board[location[0]][location[1]] = 0
+                gameObject.board[location[0]][location[1]] = "-"
                 gameObject.board[location[0] - 1][location[1] - 1] = color
             elif direction == "Capture NE":
-                gameObject.board[location[0]][location[1]] = 0
-                gameObject.board[location[0] - 1][location[1] + 1] = 0
+                gameObject.board[location[0]][location[1]] = "-"
+                gameObject.board[location[0] - 1][location[1] + 1] = "-"
                 gameObject.board[location[0] - 2][location[1] + 2] = color
             elif direction == "Capture SE":
-                gameObject.board[location[0]][location[1]] = 0
-                gameObject.board[location[0] + 1][location[1] + 1] = 0
+                gameObject.board[location[0]][location[1]] = "-"
+                gameObject.board[location[0] + 1][location[1] + 1] = "-"
                 gameObject.board[location[0] + 2][location[1] + 2] = color
             elif direction == "Capture SW":
-                gameObject.board[location[0]][location[1]] = 0
-                gameObject.board[location[0] + 1][location[1] - 1] = 0
+                gameObject.board[location[0]][location[1]] = "-"
+                gameObject.board[location[0] + 1][location[1] - 1] = "-"
                 gameObject.board[location[0] + 2][location[1] - 2] = color
             elif direction == "Capture NW":
-                gameObject.board[location[0]][location[1]] = 0
-                gameObject.board[location[0] - 1][location[1] - 1] = 0
+                gameObject.board[location[0]][location[1]] = "-"
+                gameObject.board[location[0] - 1][location[1] - 1] = "-"
                 gameObject.board[location[0] - 2][location[1] - 2] = color
         self.promoting(gameObject, color)
         #print(np.matrix(gameObject.board))
@@ -470,6 +470,7 @@ def main():
     while not game.isGameOver(actions):
         #turnsTaken += 1
         print(np.matrix(game.board))
+        print()  # Adds spacing between boards when printing
         a = actions.getPossibleActions(game, game.currentTurn)
         if len(a) == 0:
             print(game.currentTurn, "has no moves. Game Over.")
