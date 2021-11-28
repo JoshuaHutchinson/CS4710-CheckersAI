@@ -48,7 +48,6 @@ class GameState:
                     [ 0, "B", 0, "B", 0, "B", 0, "B"],
                     ["B", 0, "B", 0, "B", 0, "B", 0]]
 
-
     def getPiecesLocations(self, color):
         retList = []
         for r in range(len(self.board)):
@@ -60,6 +59,15 @@ class GameState:
 
     def getPiecesCount(self, color):
         return len(self.getPiecesLocations(color))
+
+    def getKingsCount(self, color):
+        ret = 0
+        for r in range(len(self.board)):
+            row = self.board[r]
+            for col in range(len(row)):
+                if row[col] == 2 * color:
+                    ret += 1
+        return ret
 
     def getPieceColor(self, location):  # should not call on empty space
         return self.board[location[0]][location[1]][0]
@@ -310,12 +318,19 @@ class Actions:
 
 class AlphaBetaAgent:
     def evaluationFunction(self, gameObject, color):
+        selfCount = gameObject.getPiecesCount(color)  # Count number of pieces agent has
+        numKings = gameObject.getKingsCount(color)  # Count number of kings agent has
+
+        # Switch color
         if color == "B":
             color = "W"
         else:
             color = "B"
-        return -1 * gameObject.getPiecesCount(
-            color)  # change to something more complicated. Incorporate kings, potential kings, potential captures even?
+        enemyCount = -1 * gameObject.getPiecesCount(color)  # Count number of piece opponent has
+        numEnemyKings = -1 * gameObject.getKingsCount(color)  # Count number of kings opponent has
+
+        return 1 * selfCount + 3 * enemyCount + 1 * numKings + 2 * numEnemyKings
+        # change to something more complicated. Incorporate kings, potential kings, potential captures even?
 
     def getAction(self, gameObject, actionsObject, color):
         # need to figure out default move
@@ -337,7 +352,7 @@ class AlphaBetaAgent:
             except:
                 actionsObject.applyAction(newState, possible[choice])
 
-            curValue = self.prune(newState, 2, a, b, color, color, actionsObject)
+            curValue = self.prune(newState, 4, a, b, color, color, actionsObject)
             if curValue > bestValue:
                 bestValue = curValue
                 bestAction = possible[choice]
@@ -394,7 +409,9 @@ def main():
     # game.board = game.board
 
     agents = {"B": agent1, "W": agent2}
+    #turnsTaken = 0
     while not game.isGameOver(actions):
+        #turnsTaken += 1
         print(np.matrix(game.board))
         a = actions.getPossibleActions(game, game.currentTurn)
         if len(a) == 0:
@@ -425,7 +442,10 @@ def main():
             except:
                 actions.applyAction(game, a[choice])
         game.changeTurn()
+        #print(turnsTaken)
+    print(np.matrix(game.board))
     print("Game Over")
+    #print("Turns taken: ", turnsTaken)
 
 
 main()
