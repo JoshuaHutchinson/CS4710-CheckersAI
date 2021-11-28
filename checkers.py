@@ -17,18 +17,8 @@ import copy
 class GameState:
     def __init__(self):
         self.currentTurn = "B"
-        '''
-        self.board = [[0, 0, 0, 0, 0, 0, 0, 0],
-                      [0, 0, 0, 0, 0, 0, 0, 0],
-                      [0, 0, 0, 0, 0, 0, 0, 0],
-                      [0, 0, 0, 0, 0, 0, 0, 0],
-                      [0, 0, 0, 0, 0, 0, 0, 0],
-                      [0, 0, 0, 0, 0, 0, 0, 0],
-                      [0, 0, "W", 0, 0, 0, 0, 0],
-                      [0, 0, 0, "B", 0, 0, 0, 0]]
-
-        print("initialized")
         
+        '''
         self.board = [[0, 0, 0, 0, 0, 0, 0, 0],
                  [0, 0, 0, 0, 0, 0, 0, 0],
                  [0, 0, "W", 0, "W", 0, 0, 0],
@@ -330,7 +320,7 @@ class AlphaBetaAgent:
         numEnemyKings = -1 * gameObject.getKingsCount(color)  # Count number of kings opponent has
 
         return 1 * selfCount + 3 * enemyCount + 1 * numKings + 2 * numEnemyKings
-        # change to something more complicated. Incorporate kings, potential kings, potential captures even?
+        #Could change to something more complicated. Incorporate kings, potential kings, potential captures even?
 
     def getAction(self, gameObject, actionsObject, color):
         # need to figure out default move
@@ -388,6 +378,71 @@ class AlphaBetaAgent:
                 b = min(b, v)
             return v
 
+class ExpectiMaxAgent:
+    def evaluationFunction(self, gameObject, color):
+        selfCount = gameObject.getPiecesCount(color)  # Count number of pieces agent has
+        numKings = gameObject.getKingsCount(color)  # Count number of kings agent has
+
+        # Switch color
+        if color == "B":
+            color = "W"
+        else:
+            color = "B"
+        enemyCount = -1 * gameObject.getPiecesCount(color)  # Count number of piece opponent has
+        numEnemyKings = -1 * gameObject.getKingsCount(color)  # Count number of kings opponent has
+
+        return 1 * selfCount + 3 * enemyCount + 1 * numKings + 2 * numEnemyKings
+        #Could change to something more complicated. Incorporate kings, potential kings, potential captures even?
+
+    def getAction(self, gameObject, actionsObject, color):
+        # need to figure out default move
+        if color == "B":
+            bestAction = [[5, 0], "NE"]  # default action should just be first item in actionsObject.
+        else:
+            bestAction = [[2, 7], "SW"]
+        bestValue = float('-inf')
+        a = bestValue
+        b = -bestValue
+        possible = actionsObject.getPossibleActions(gameObject, color)
+        for choice in range(len(possible)):
+            newState = GameState()
+            # print("attempting to apply action", possible[choice])
+            # actionsObject.applyAction(newState, [possible[choice]])## should call with actions as [a[choice]], where a is possible actions, b is index.
+            try:
+                actionsObject.applyAction(newState, [possible[choice]])
+            except:
+                actionsObject.applyAction(newState, possible[choice])
+            curValue = self.prune(newState, 4, a, b, color, color, actionsObject)
+            if curValue > bestValue:
+                bestValue = curValue
+                bestAction = possible[choice]
+                # print("bestAction = ", possible[choice])
+            if bestValue > b:
+                return bestValue
+            a = max(a, curValue)
+        return bestAction
+
+    def prune(self, gameObject, depth, a, b, color, maximizingColor, actionsObject):
+        if depth == 0 or gameObject.isGameOver(actionsObject):
+            return self.evaluationFunction(gameObject, color)
+        potentialStates = gameObject.generateSuccessors(actionsObject, color)
+        if color == "W":
+            color = "B"
+        else:
+            color = "W"
+        depth -= 1
+        if color == maximizingColor:
+            v = float('-inf')
+            for state in potentialStates:
+                v = max(v, self.prune(state, depth, a, b, color, maximizingColor, actionsObject))
+                if v > b:
+                    return v
+                a = max(a, v)
+            return v
+        else:
+            r = random.randint(0, len(potentialStates) - 1)
+            v = self.evaluationFunction(potentialStates[r], maximizingColor)
+            return v
 
 class RandomAgent:
     def getAction(self, gameObject, actionsObject, color):
@@ -400,9 +455,9 @@ def main():
     game = GameState()
     actions = Actions()
 
-    print("Choose Agent 1- PLAYER (P), RANDOM (R), or MINIMAX(M)")
+    print("Pick Black Agent- PLAYER (P), RANDOM (R), MINIMAX(M), or EXPECTIMAX(E)")
     agent1 = str(input()).upper()
-    print("Choose Agent 2- PLAYER (P), RANDOM (R), or MINIMAX(M)")
+    print("Pick White Agent- PLAYER (P), RANDOM (R), MINIMAX(M), oe EXPECTIMAX(E)")
     agent2 = str(input()).upper()
 
     # game.board = game.capturingBoard
@@ -416,6 +471,10 @@ def main():
         a = actions.getPossibleActions(game, game.currentTurn)
         if len(a) == 0:
             print("Game Over")
+            if game.currentTurn=="B":
+                print("White Wins")
+            if game.currentTurn=="W":
+                print("Black Wins")
             return
         if agents[game.currentTurn] == "PLAYER" or agents[game.currentTurn] == "P" or agents[game.currentTurn] == "1":
             print("Input an integer 0 or greater among moves available for", game.currentTurn, " :")
@@ -441,11 +500,21 @@ def main():
                 actions.applyAction(game, [a[choice]])
             except:
                 actions.applyAction(game, a[choice])
+        if agents[game.currentTurn] == "E" or agents[game.currentTurn] == "EXPECTIMAX" or agents[game.currentTurn] == "4":
+            ai = ExpectiMaxAgent()
+            choice = ai.getAction(game, actions, game.currentTurn)
+            try:
+                actions.applyAction(game, [choice])
+            except:
+                actions.applyAction(game, choice)
         game.changeTurn()
         #print(turnsTaken)
     print(np.matrix(game.board))
     print("Game Over")
-    #print("Turns taken: ", turnsTaken)
+    if game.currentTurn=="B":
+        print("White Wins")
+    if game.currentTurn=="W":
+        print("Black Wins")
 
 
 main()
