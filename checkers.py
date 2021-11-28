@@ -63,7 +63,7 @@ class GameState:
         return self.board[location[0]][location[1]][0]
 
     def isGameOver(self, actionsObject):  # add in stale mate checking
-        if self.getPiecesCount("W") == 0 or self.getPiecesCount("B") == 0 or len(actionsObject.getPossibleActions(self, "W")) == 0 or len(actionsObject.getPossibleActions(self, "B")) == 0:
+        if self.getPiecesCount("W") == 0 or self.getPiecesCount("B") == 0 or len(actionsObject.getPossibleActions(self, self.currentTurn)) == 0 :#or len(actionsObject.getPossibleActions(self, "B")) == 0:
             return True
         return False
 
@@ -440,8 +440,10 @@ class ExpectiMaxAgent:
                 a = max(a, v)
             return v
         else:
-            r = random.randint(0, len(potentialStates) - 1)
-            v = self.evaluationFunction(potentialStates[r], maximizingColor)
+            vTotal = 0
+            for state in potentialStates:
+                vTotal += self.prune(state, depth, a, b, color, maximizingColor, actionsObject)
+            v = vTotal/len(potentialStates)
             return v
 
 class RandomAgent:
@@ -470,7 +472,7 @@ def main():
         print(np.matrix(game.board))
         a = actions.getPossibleActions(game, game.currentTurn)
         if len(a) == 0:
-            print("Game Over")
+            print(game.currentTurn, "has no moves. Game Over.")
             if game.currentTurn=="B":
                 print("White Wins")
             if game.currentTurn=="W":
@@ -512,9 +514,9 @@ def main():
     print(np.matrix(game.board))
     print("Game Over")
     if game.currentTurn=="B":
-        print("White Wins")
+        print(game.getPiecesCount("B"), "Black pieces left. White Wins")
     if game.currentTurn=="W":
-        print("Black Wins")
+        print(game.getPiecesCount("W"), "White pieces left. Black Wins")
 
 
 main()
