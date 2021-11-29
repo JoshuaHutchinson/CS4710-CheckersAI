@@ -348,7 +348,7 @@ class AlphaBetaAgent:
                 bestAction = possible[choice]
                 # print("bestAction = ", possible[choice])
             if bestValue > b:
-                return bestValue
+                return bestAction
             a = max(a, curValue)
         return bestAction
 
@@ -418,7 +418,7 @@ class ExpectiMaxAgent:
                 bestAction = possible[choice]
                 # print("bestAction = ", possible[choice])
             if bestValue > b:
-                return bestValue
+                return bestAction
             a = max(a, curValue)
         return bestAction
 
